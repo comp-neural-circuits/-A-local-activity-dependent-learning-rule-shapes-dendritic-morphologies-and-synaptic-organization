@@ -1,7 +1,7 @@
-A local activity-dependent learning rule shapes dendritic morphologies and synaptic organization
+Dendritic growth and synaptic organization from activity-independent cues and local activity-dependent plasticity
 ====================================================================
 
-Matlab code for the manuscript ["A local activity-dependent learning rule shapes dendritic morphologies and synaptic organization"](https://doi.org/10.7554/eLife.87527.1) by Jan H. Kirchner, Lucas Euler, Ingo Fritz, André Ferreira Castro and Julijana Gjorgjieva
+Matlab code for the manuscript ["Dendritic growth and synaptic organization from activity-independent cues and local activity-dependent plasticity"](https://doi.org/10.7554/eLife.87527.1) by Jan H. Kirchner, Lucas Euler, Ingo Fritz, André Ferreira Castro and Julijana Gjorgjieva
 
 Contacts:
 ingo.fritz@tum.de
