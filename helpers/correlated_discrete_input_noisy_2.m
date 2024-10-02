@@ -1,0 +1,91 @@
+function [S,GroupID,S_groups,pairs] = correlated_discrete_input_noisy_2(synNum,ngroup,npairs,pairstrength,pairmax,incor,T,mu)
+
+% this version is supposed to implement correlation in a more clean way,
+% without the global noise. Here overlapping patterns are generated and
+% then the appropriate amount of spikes is picked from them, afterwards the
+% patterns of each group are filled up randomly, this random fill up is
+% then subject to in-group noise
+% also the individual noise here is of the form that a part of the firing
+% pattern of each group that specifically doesnt correspond to one of the
+% overlapping  parts is randomized, keeping the rest of the pattern
+% synchronous
+
+% this function creates activity pattern for ngroups many separate groups
+% of neurons, which the synapses will be distributed into. npairs
+% determines how many pairs of groups are supposed to have correlated input
+% given by the pairstrength (between 0 and 1),
+% and pairmax is the maximum times that any particular pair can be chosen
+% (increasing the correlation each time)
+% unform/indiv noise determine how much white noise is applied to
+% each of the groups uniformly or each of the synapses individually
+% mu is the average fireing rate and T is the amount ot timesteps.
+
+
+% the correlated pairs will then recieve identical spiketrains modified by
+% thier correlation strength. For now, there will be no such thing as
+% correlation across multiple groups at the same time.
+
+% idea: store the correlations in a ngroups^2 matrix integer entries from 0
+% to pairmax and such that each row and colum times pairstrength summed up
+% is bounded by 1.
+
+% setting up the pairs using custom_randomdraw
+
+pairprob = ones(ngroup) - eye(ngroup);
+pairs = zeros(ngroup);
+
+for p = 1:npairs
+    newpair = custom_randomdraw(pairprob);
+    pairs = pairs + newpair + newpair';
+    
+    pairprob(pairs == pairmax) = 0;
+    pairprob(((sum(pairs,2)+1)*pairstrength)>1,:) = 0;
+    pairprob(:,((sum(pairs,2)+1)*pairstrength)>1) = 0;    
+end
+
+% generating the overlapping patterns for each pair (generating full
+% spiketrains here to avoid overlaps later)
+pairlin = find(triu(pairs)>0)';
+pairamount = size(pairlin,2);
+S_pairs = false(pairamount,T);
+for i = 1:pairamount
+    S_pairs(i,:) = rand([1,T]) < mu;
+end
+
+S_groups = false([ngroup,T]);
+
+% adding in the overlapping spikes on each of the groups
+for i = 1:pairamount
+    lin = pairlin(i);
+    [j,k] = ind2sub(size(pairs),lin);
+    overlap = S_pairs(i,:);
+    overlap(overlap > 0) = rand([1, sum(overlap,'all')]) < pairs(lin)*pairstrength; % keeping the appropriate amount of spikes for the overlap
+    S_groups(j,:) = S_groups(j,:) | overlap;
+    S_groups(k,:) = S_groups(k,:) | overlap;
+end
+
+% generating the synchronous spikes of each group that do not contribute to
+% correlation
+for i = 1:ngroup
+    cgroup = S_groups(i,:);
+    cgroup(cgroup == 0) = rand([1, T - sum(cgroup,'all')]) < (mu - (sum(cgroup,'all')/T) - mu*(1-incor));
+    S_groups(i,:) = cgroup;
+end
+
+% all thats left is to distribute the pattern over all the synapses and add
+% individual fully individual spikes for each of them
+
+S = false(synNum , T);
+GroupID = 1:synNum;
+GroupID = mod(GroupID,ngroup)+1;
+GroupID = GroupID(randsample(synNum,synNum))';
+
+for i = 1:synNum
+    cur_syn = S_groups(GroupID(i),:);
+    cur_syn(cur_syn == 0) = rand([1, T - sum(cur_syn,'all')]) < mu*(1-incor);
+    S(i,:) = cur_syn;
+end
+
+
+end
+
