@@ -9,7 +9,7 @@ function [prms , mats , cells] = get_params_2D_fixed(T,N)
     mats = struct;
     cells = struct;
 
-    initSomPos = load('data_Jan/initialSomaPos.mat');
+    initSomPos = load('data/initialSomaPos.mat');
     mats.Soma = initSomPos.initialSomaPos;
     mats.Area = (ones(P , P)); 
     mats.Area(1,:) = 0; mats.Area(end,:) = 0; mats.Area(:,1) = 0; mats.Area(:,end) = 0;
@@ -17,13 +17,13 @@ function [prms , mats , cells] = get_params_2D_fixed(T,N)
     % freezing issue in the while loop of get_distance_nomax
     mats.Dend = mats.Soma; 
     
-    groupsmat = load('data_Jan/Groupsmat.mat');
+    groupsmat = load('data/Groupsmat.mat');
     mats.Syn = logical(sum(groupsmat.Groupsmat , 3));
     mats.Groups = groupsmat.Groupsmat;
 
     % now assign activity traces to all the potential synapses
     
-    groupsmat = load('data_Jan/Groupsmat.mat');
+    groupsmat = load('data/Groupsmat.mat');
     mats.Syn = logical(sum(groupsmat.Groupsmat , 3));
     mats.Groups = groupsmat.Groupsmat;
     
